@@ -7,8 +7,6 @@ package soundclient;
 
 import user_interface.TextBasedInterface;
 
-
-
 /**
  *
  * @author lsdpirate
@@ -31,8 +29,7 @@ public class SoundClient {
 //        mns.sendMediaOverNetwork(test);
 //        mns.sendMediaOverNetwork(t);
         TextBasedInterface in = new TextBasedInterface();
-        
 
     }
-    
+
 }

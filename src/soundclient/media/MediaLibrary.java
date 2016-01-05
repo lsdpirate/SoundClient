@@ -6,7 +6,7 @@
 package soundclient.media;
 
 import io.FileExplorer;
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 /**
@@ -24,27 +24,31 @@ public class MediaLibrary {
 
     public void addMediaFromPath(String p) {
         if (fileExplorer.checkFileExists(p)) {
-            File f = new File(p); //To change in future, this class shouldn't have to work with File
-            Media newMedia = new Media(f.getAbsolutePath());
-            newMedia.setName(f.getName());
-            medias.add(newMedia);
+            Media newMedia = new Media(p);
+            newMedia.setName(fileExplorer.getFileName(p));
+            if(!checkIfPresent(newMedia))medias.add(newMedia);
         }
     }
 
     public void addLibrary(String library) throws Exception {
 
-        importFromLibrary(library);
-        pathsToLibraries.add(library); //Not safe, must check if the import was
-        //successful
-
+        //This try...catch block might be useless but we'll leave it here
+        try {
+            importFromLibrary(library);
+            pathsToLibraries.add(library);
+        } catch (FileNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw ex;
+        }
     }
 
     private void importFromLibrary(String libraryPath) throws Exception {
-        String[] medias = fileExplorer.getAllMediaFromPath(libraryPath);
-        if (medias.length < 1) {
+        String[] mediasPaths = fileExplorer.getAllMediaFromPath(libraryPath);
+        if (mediasPaths.length < 1) {
             throw new Exception("No medias found");
         }
-        for (String s : medias) {
+        for (String s : mediasPaths) {
             addMediaFromPath(s);
         }
     }
@@ -73,5 +77,18 @@ public class MediaLibrary {
 
     public ArrayList<String> getPathsToLibraries() {
         return pathsToLibraries;
+    }
+
+    private boolean checkIfPresent(Media newMedia) {
+        boolean result = false;
+        
+        for(Media m : medias){
+            if(m.compareTo(newMedia) == 0){
+                result = true;
+                break;
+            }
+        }
+        
+        return result;
     }
 }

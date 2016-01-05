@@ -3,10 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/media/lsdpirate/HDD_3/Projects/_raspberry-audio/java/SoundClient/src/io/FileExplorer.java</file>
-            <file>file:/media/lsdpirate/HDD_3/Projects/_raspberry-audio/java/SoundClient/src/soundclient/media/Media.java</file>
-            <file>file:/media/lsdpirate/HDD_3/Projects/_raspberry-audio/java/SoundClient/src/user_interface/TextBasedInterface.java</file>
-            <file>file:/media/lsdpirate/HDD_3/Projects/_raspberry-audio/java/SoundClient/src/soundclient/media/MediaLibrary.java</file>
+            <file>file:/G:/Projects/_raspberry-audio/java/SoundClient/src/io/MediaNetworkSender.java</file>
+            <file>file:/G:/Projects/_raspberry-audio/java/SoundClient/src/user_interface/FXForm.fxml</file>
+            <file>file:/G:/Projects/_raspberry-audio/java/SoundClient/src/user_interface/GuiLauncher.java</file>
+            <file>file:/G:/Projects/_raspberry-audio/java/SoundClient/src/user_interface/FXFormController.java</file>
+            <file>file:/G:/Projects/_raspberry-audio/java/SoundClient/src/soundclient/media/MediaLibrary.java</file>
         </group>
     </open-files>
 </project-private>

@@ -6,6 +6,7 @@
 package io;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 
 /**
@@ -19,21 +20,24 @@ public class FileExplorer {
 
     public FileExplorer() {
 
-        filenameFilter = (File dir, String name) -> {
-            boolean result = false;
-            if (name.lastIndexOf(".") > 0) {
-
-                int lastIndex = name.lastIndexOf(".");
-                String str = name.substring(lastIndex);
-
-                for (String ae : acceptedExtensions) {
-                    if (ae.equals(str)) {
-                        result = true;
+        filenameFilter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                boolean result = false;
+                if (name.lastIndexOf(".") > 0) {
+                    
+                    int lastIndex = name.lastIndexOf(".");
+                    String str = name.substring(lastIndex);
+                    
+                    for (String ae : acceptedExtensions) {
+                        if (ae.equals(str)) {
+                            result = true;
+                        }
                     }
                 }
+                
+                return result;
             }
-
-            return result;
         };
     }
 
@@ -52,8 +56,6 @@ public class FileExplorer {
                     if (ar.equals(str)) {
                         result = result & true;
                         break;
-                    } else {
-                        result = false;
                     }
                 }
             } else {
@@ -64,19 +66,22 @@ public class FileExplorer {
         }
         return result;
     }
-
-    public String[] getAllMediaFromPath(String path) {
+    
+    public String getFileName(String p){
+        File f = new File(p);
+        return f.getName();
+    }
+    public String[] getAllMediaFromPath(String path) throws FileNotFoundException {
         String[] result;
 
         File folder = new File(path);
 
         if (!folder.isDirectory()) {
-            //Throw exception if the given path is not a folder
+            throw new FileNotFoundException("The specified path is not a folder");
         }
 
         //Make a list of all files in the given folder that are audio files.
         File[] listOfFiles = folder.listFiles(filenameFilter);
-
 
         result = new String[listOfFiles.length];
 
