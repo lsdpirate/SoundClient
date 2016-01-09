@@ -20,7 +20,7 @@
                         <items>
                               <MenuItem fx:id="miLoadFolder" mnemonicParsing="false" onAction="#loadFromFolderClicked" text="Load from Folder ..." />
                               <MenuItem fx:id="miLoadMedia" mnemonicParsing="false" onAction="#loadMediaClicked" text="Load Media ..." />
-                          <MenuItem fx:id="miClose" mnemonicParsing="false" text="Close" />
+                          <MenuItem fx:id="miClose" mnemonicParsing="false" onAction="#closeClicked" text="Close" />
                         </items>
                       </Menu>
                       <Menu mnemonicParsing="false" text="Control">

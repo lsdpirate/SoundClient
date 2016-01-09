@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package soundclient.media;
 
 /**
- *
+ * A Media is a representation of a media file present in the user's system.
  * @author lsdpirate
  */
 public class Media implements Comparable{
@@ -17,23 +12,44 @@ public class Media implements Comparable{
     public Media() {
     }
 
+    /**
+     * Creates a media with a set path.
+     * @param path The path to set.
+     */
     public Media(String path) {
         pathToMedia = path;
     }
 
+    /**
+     * Creates a media with a path and a name.
+     * @param path The path of the media.
+     * @param name The name of the media.
+     */
     public Media(String path, String name) {
         this(path);
         setName(name);
     }
 
+    /**
+     * Returns the path of the media.
+     * @return Media's path.
+     */
     public String getPath() {
         return pathToMedia;
     }
 
+    /**
+     * Set the name for the media.
+     * @param newName The new name of the media.
+     */
     public void setName(String newName) {
         name = newName;
     }
 
+    /**
+     * Returns the media's name.
+     * @return The media's name.
+     */
     public String getName() {
         return name;
     }

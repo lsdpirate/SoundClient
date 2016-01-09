@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -104,6 +105,11 @@ public class FXFormController implements Initializable {
     public void volumeChanged(MouseEvent me) {
         int val = (int) slVolume.getValue();
         mns.sendVolumeSet(val);
+    }
+    
+    @FXML
+    public void closeClicked(ActionEvent ae){
+        Platform.exit();
     }
 
     @FXML
@@ -204,7 +210,13 @@ public class FXFormController implements Initializable {
         lbMedias.setItems(list);
     }
     
-    
+    public void init(MediaNetworkSender mns, MediaLibrary ms){
+        this.mns = mns;
+        medias = ms;
+        list = FXCollections.observableArrayList(medias.getMedias());
+        lbMedias.setItems(list);
+        
+    }
 
     /**
      * Initializes the controller class.
@@ -214,10 +226,7 @@ public class FXFormController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        mns = new MediaNetworkSender();
-        medias = new MediaLibrary();
-        list = FXCollections.observableArrayList(medias.getMedias());
-        lbMedias.setItems(list);
+
 
     }
 

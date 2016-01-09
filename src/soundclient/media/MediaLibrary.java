@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package soundclient.media;
 
 import io.FileExplorer;
@@ -10,7 +5,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 /**
- *
+ * MediaLibrary is a class which manages a list of medias and imports them from the
+ * file system individually or from an entire folder.
  * @author lsdpirate
  */
 public class MediaLibrary {
@@ -22,6 +18,11 @@ public class MediaLibrary {
     public MediaLibrary() {
     }
 
+    /**
+     * Adds a media from an entered path. If the media is not found, nothing
+     * happens.
+     * @param p The path of the media. 
+     */
     public void addMediaFromPath(String p) {
         if (fileExplorer.checkFileExists(p)) {
             Media newMedia = new Media(p);
@@ -30,6 +31,12 @@ public class MediaLibrary {
         }
     }
 
+    /**
+     * Adds the path into a list and all medias files located in the given folder
+     * into the medias list.
+     * @param library The folder to load the files from.
+     * @throws Exception In case the entered path doesn't exist.
+     */
     public void addLibrary(String library) throws Exception {
 
         //This try...catch block might be useless but we'll leave it here
@@ -38,12 +45,22 @@ public class MediaLibrary {
             pathsToLibraries.add(library);
         } catch (FileNotFoundException ex) {
             throw ex;
+        }catch (IllegalArgumentException ex){
+            throw ex;
         } catch (Exception ex) {
             throw ex;
         }
     }
 
+    /**
+     * Adds all medias from a specified folder.
+     * @param libraryPath The path to the folder.
+     * @throws Exception If the given path doesn't lead to a folder or 
+     * doesn't exist.
+     * @throws IllegalArgumentException If the entered path was null.
+     */
     private void importFromLibrary(String libraryPath) throws Exception {
+        if (libraryPath == null)throw new IllegalArgumentException("The entered path was null");
         String[] mediasPaths = fileExplorer.getAllMediaFromPath(libraryPath);
         if (mediasPaths.length < 1) {
             throw new Exception("No medias found");
@@ -53,6 +70,10 @@ public class MediaLibrary {
         }
     }
 
+    /**
+     * Imports all medias from all paths present in the list of libraries.
+     * @throws Exception If any of the paths isn't valid or doesn't exist.
+     */
     private void importFromAllLibraries() throws Exception {
         if (!pathsToLibraries.isEmpty()) {
             for (String p : pathsToLibraries) {
@@ -79,6 +100,11 @@ public class MediaLibrary {
         return pathsToLibraries;
     }
 
+    /**
+     * Checks if a media is already present in the list.
+     * @param newMedia The media to check.
+     * @return True if the media exists, otherwise False.
+     */
     private boolean checkIfPresent(Media newMedia) {
         boolean result = false;
         
