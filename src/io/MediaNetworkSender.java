@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import soundclient.media.Media;
+import util.MainLogger;
 
 /**
  * The MediaNetworkSender class (name TBD) is the class which manages the
@@ -17,18 +17,24 @@ import soundclient.media.Media;
 public class MediaNetworkSender {
 
     /*
-     Will own an instance of ClientSocket and a Thread of it.
-     
+        Will own 2 instances of ClientSocket, one instance will be used for
+        data sending while the other will be reserved for player/client dialog.
      */
-    private final ClientSocket socket;
+    private final ClientSocket dataSocket;
     private boolean connected;
-    private boolean bufferInUse;
+    private final ClientSocket commandSocket;
+    private boolean peerListening;
+    
+    
 
     /**
-     * The default constructor does nothing.
+     * Default constructor for MediaNetworkSender.
+     * This does not do anything relevant.
      */
     public MediaNetworkSender() {
-        socket = new ClientSocket();
+        dataSocket = new ClientSocket();
+        commandSocket = new ClientSocket();
+
     }
 
     /**
@@ -41,9 +47,13 @@ public class MediaNetworkSender {
      * negative port number)
      */
     public void connectToSocket(String serverIp, int serverPort) throws IOException, IllegalArgumentException {
-        if (!socket.isClosed()) {
-            socket.close();
+        if (!dataSocket.isClosed()) {
+            dataSocket.close();
             connected = false;
+        }
+        if (!commandSocket.isClosed()) {
+            commandSocket.close();
+
         }
 
         if (serverPort < 0) {
@@ -52,8 +62,46 @@ public class MediaNetworkSender {
         if (serverIp.length() < 1) {
             throw new IllegalArgumentException("The specified ip isn't valid: " + serverIp);
         }
-        socket.connect(serverIp, serverPort);
+        dataSocket.connect(serverIp, serverPort);
+        MainLogger.log(Level.FINE, "Data connection established");
+
+        commandSocket.connect(serverIp, serverPort + 1);
+        MainLogger.log(Level.FINE, "Command connection established");
+
         connected = true;
+        peerListening = true;
+
+        //Anonymous thread that whatches for any messages coming from the 
+        //connected player via the commandSocket.
+        new Thread() {
+            @Override
+            public void run() {
+                while (connected) {
+                    String msg = "";
+                    try {
+                        msg = commandSocket.read();
+                    } catch (IOException ex) {
+                        MainLogger.log(Level.SEVERE, "Could not get command's inputstream", ex);
+                    }
+                    switch (msg) {
+                        case "SSC":     //CommunicationProtocol.STOP_STREAM_CODE
+                            peerListening = false;
+                            break;
+                        case "SC": //CommunicationProtocol.SHUTDOWN_CODE
+                            peerListening = false;
+
+                             {
+                                try {
+                                    close();
+                                } catch (IOException ex) {
+                                    MainLogger.log(Level.SEVERE, "Could not close sockets", ex);
+                                }
+                            }
+                    }
+
+                }
+            }
+        }.start();
     }
 
     /**
@@ -68,12 +116,14 @@ public class MediaNetworkSender {
      * @throws IOException If an I/O error occurs.
      */
     public void sendMediaOverNetwork(Media m) throws IOException {
-        if (socket.isClosed()) {
+        if (dataSocket.isClosed()) {
             throw new IOException("No connection is present");
         }
-        File audioFile = new File(m.getPath());
-        System.out.println(audioFile.getName());
+        commandSocket.sendData(CommunicationProtocol.INCOMING_DATA.getValue());
+        peerListening = true;
 
+        File audioFile = new File(m.getPath());
+        MainLogger.log(Level.FINE, "Sending media via network " + m.getName());
         //Send the header for the communication protocol
         long fileLength = audioFile.length();
         String header = CommunicationProtocol.SONG_HEADER.getValue() + Long.toString(fileLength);
@@ -85,19 +135,34 @@ public class MediaNetworkSender {
         new Thread() {
             @Override
             public void run() {
-                synchronized (socket) {
-                    try {
-                        int count;
-                        while ((count = fis.read(buffer)) != -1 && !socket.isClosed()) {
-                            socket.write(buffer, 0, count);
+                try {
+
+                    fis.read(buffer);
+                    for (byte b : buffer) {
+                        synchronized (dataSocket) {
+                            if (!peerListening) {
+                                break;
+                            }
+                            dataSocket.write(b);
                         }
-                    } catch (IOException ex) {
-                        Logger.getLogger(MediaNetworkSender.class.getName()).log(Level.SEVERE, null, ex);
                     }
+
+                    //Transfer transfer = new Transfer("TRS " + m.getName());
+                    //OutBufferTracker.addTransfer(transfer);
+                    // int count;
+                    //while ((count = fis.read(buffer)) != -1 && !socket.isClosed()) {
+                    //  socket.write(buffer, 0, count);
+                    //completion:percentage=filesize
+                    //  int perc = count * 100 / (int)audioFile.length();
+                    //   transfer.setTransferStatus(perc);
+                    //}
+                    // OutBufferTracker.removeTransfer(transfer);
+                } catch (IOException ex) {
+                    MainLogger.log(Level.SEVERE, null, ex);
                 }
+
             }
         }.start();
-        // socket.flush();
 
     }
 
@@ -105,37 +170,38 @@ public class MediaNetworkSender {
      * Sends the play command to the player over the socket.
      */
     public void sendPlayCommand() {
-        synchronized (socket) {
-            if (socket.isClosed()) {
-                return;
-            }
-            socket.sendData(CommunicationProtocol.PLAY_COMMAND_HEADER.getValue());
 
+        if (commandSocket.isClosed()) {
+            return;
         }
+        try {
+            commandSocket.flush();
+        } catch (IOException ex) {
+            MainLogger.log(Level.SEVERE, null, ex);
+        }
+        commandSocket.sendData(CommunicationProtocol.PLAY_COMMAND_HEADER.getValue());
+
     }
 
     /**
      * Sends the pause command to the player over the socket.
      */
     public void sendPauseCommand() {
-        synchronized (socket) {
-            if (socket.isClosed()) {
-                return;
-            }
-            socket.sendData(CommunicationProtocol.PAUSE_COMMAND_HEADER.getValue());
+        if (commandSocket.isClosed()) {
+            return;
         }
+        commandSocket.sendData(CommunicationProtocol.PAUSE_COMMAND_HEADER.getValue());
     }
 
     /**
      * Sends the stop command to the player over the socket.
      */
     public void sendStopCommand() {
-        synchronized (socket) {
-            if (socket.isClosed()) {
-                return;
-            }
-            socket.sendData(CommunicationProtocol.STOP_COMMAND_HEADER.getValue());
+        if (commandSocket.isClosed()) {
+            return;
         }
+        peerListening = false;
+        commandSocket.sendData(CommunicationProtocol.STOP_COMMAND_HEADER.getValue());
     }
 
     /**
@@ -145,13 +211,12 @@ public class MediaNetworkSender {
      * @param volume An integer representing the volume level.
      */
     public void sendVolumeSet(int volume) {
-        synchronized (socket) {
-            if (socket.isClosed()) {
-                return;
-            }
-            socket.sendData(CommunicationProtocol.VOLUME_SET_HEADER.getValue());
-            socket.sendData(Integer.toString(volume));
+        if (commandSocket.isClosed()) {
+            return;
         }
+        commandSocket.sendData(CommunicationProtocol.VOLUME_SET_HEADER.getValue());
+        commandSocket.sendData(Integer.toString(volume));
+
     }
 
     /**
@@ -171,8 +236,10 @@ public class MediaNetworkSender {
      * @throws IOException If an I/O error occurs.
      */
     public void close() throws IOException {
-        socket.close();
         connected = false;
+        dataSocket.close();
+        commandSocket.close();
+        MainLogger.log(Level.INFO, "Sockets have been closed");
 
     }
 }

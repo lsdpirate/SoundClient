@@ -1,35 +1,40 @@
 package io;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
- * This class is a wrapper class for a socket.
- * Many of the methods are delegates of members of the socket class.
+ * This class is a wrapper class for a socket. Many of the methods are delegates
+ * of members of the socket class.
+ *
  * @author lsdpirate
  */
-public class ClientSocket{
+public class ClientSocket {
 
     private Socket localSocket;
     private InetSocketAddress serverInfos;
     private OutputStream outputStream;
     private PrintWriter printWriter;
+    BufferedReader bufferedReader;
 
     /**
-     * Default constructor for the ClientSocket class.
-     * This constructor does nothing so it is much preferrable to use the 
-     * parametric contructor. However it is still possible to pass connection 
-     * parameters by using the connect() method.
+     * Default constructor for the ClientSocket class. This constructor does
+     * nothing so it is much preferrable to use the parametric contructor.
+     * However it is still possible to pass connection parameters by using the
+     * connect() method.
      */
     public ClientSocket() {
         localSocket = new Socket();
     }
-    
+
     /**
-     * Creates a ClientSocket wich tries to connect to the specified host. 
+     * Creates a ClientSocket wich tries to connect to the specified host.
+     *
      * @param serverIp The ip or hostname of the target host
      * @param serverPort The port to connect to
      * @throws IOException If something during the connection fails
@@ -40,6 +45,7 @@ public class ClientSocket{
 
     /**
      * Connects the socket to the specified host via the specified port.
+     *
      * @param serverIp The ip or hostname of the target host
      * @param serverPort The port to connect to
      * @throws IOException If something during the connection fails
@@ -50,25 +56,37 @@ public class ClientSocket{
         localSocket.connect(serverInfos);
         outputStream = localSocket.getOutputStream();
         printWriter = new PrintWriter(outputStream, true);
-
+        bufferedReader = new BufferedReader(new InputStreamReader(localSocket.getInputStream()));
     }
 
     /**
      * Delegate method to this Outputstream's write() method.
+     *
      * @see OutputStream.write()
-     * @param      b     the data.
-     * @param      off   the start offset in the data.
-     * @param      len   the number of bytes to write.
-     * @exception  IOException  if an I/O error occurs. In particular,
-     *             an <code>IOException</code> is thrown if the output
-     *             stream is closed.
+     * @param b the data.
+     * @param off the start offset in the data.
+     * @param len the number of bytes to write.
+     * @exception IOException if an I/O error occurs. In particular, an
+     * <code>IOException</code> is thrown if the output stream is closed.
      */
     public void write(byte[] b, int off, int len) throws IOException {
         outputStream.write(b, off, len);
+
+    }
+
+    /**
+     * TEST PENDING
+     *
+     * @param b
+     * @throws IOException
+     */
+    public void write(int b) throws IOException {
+        outputStream.write(b);
     }
 
     /**
      * Delegate method for this Outputstream's flush() method.
+     *
      * @throws IOException if an I/O error occurs.
      */
     public void flush() throws IOException {
@@ -78,8 +96,9 @@ public class ClientSocket{
     /**
      * Sends the data to the connected socket. If there isn't any socket
      * connected an exception will be thrown.
+     *
      * @param data The data to be sent
-     * @throws IOException If an I/O error occurs or if the socket is not 
+     * @throws IOException If an I/O error occurs or if the socket is not
      * connected.
      */
     public void sendData(byte[] data) throws IOException {
@@ -90,6 +109,7 @@ public class ClientSocket{
     /**
      * Sends the data to the connected socket. If there isn't any socket
      * connected an exception will be thrown.
+     *
      * @param data The data to be sent
      */
     public void sendData(String data) {
@@ -99,6 +119,7 @@ public class ClientSocket{
 
     /**
      * Closes the connection and the streams if present.
+     *
      * @throws IOException If an I/O error occurs.
      */
     public void close() throws IOException {
@@ -116,11 +137,19 @@ public class ClientSocket{
 
     /**
      * Returns the connection status for this socket.
+     *
      * @return True if there is a connection, False is there is none
      */
-    public boolean isClosed(){
+    public boolean isClosed() {
         return this.localSocket.isClosed();
     }
 
+    public String read() throws IOException {
+        String result = "";
+        if (bufferedReader.ready() && !isClosed()) {
+            result = bufferedReader.readLine();
+        }
 
+        return result;
+    }
 }

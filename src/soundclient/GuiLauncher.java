@@ -1,6 +1,7 @@
 package soundclient;
 
 import io.MediaNetworkSender;
+import java.util.logging.Level;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import soundclient.media.MediaLibrary;
 import user_interface.FXFormController;
+import util.MainLogger;
 
 /**
  * This class represents the entry point for the application if a gui is wanted.
@@ -30,6 +32,9 @@ public class GuiLauncher extends Application{
     
     @Override
     public void start(Stage primaryStage) throws Exception {
+        new MainLogger();
+        MainLogger.log(Level.INFO, "Program starting in GUI");
+        
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../user_interface/FXForm.fxml"));
         
         Parent root = (Parent)fxmlLoader.load();

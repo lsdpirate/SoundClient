@@ -31,6 +31,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import soundclient.media.Media;
 import soundclient.media.MediaLibrary;
+import util.MainLogger;
 
 public class FXFormController implements Initializable {
 
@@ -125,7 +126,7 @@ public class FXFormController implements Initializable {
                 Alert a = new Alert(AlertType.WARNING, "Could not send the media to queue, no connection to the player");
                 a.showAndWait();
 
-                Logger.getLogger(FXFormController.class.getName()).log(Level.SEVERE, "No connection", ex);
+                MainLogger.log(Level.SEVERE, "No connection", ex);
             }
         }
     }
@@ -151,18 +152,18 @@ public class FXFormController implements Initializable {
         try {
             mns.connectToSocket(ip, intPort);
         } catch (IOException ex) {
-            Logger.getLogger(FXFormController.class.getName()).log(Level.SEVERE, "Connection failed", ex);
+            MainLogger.log(Level.SEVERE, "Connection failed", ex);
         } catch (IllegalArgumentException ex) {
             //No input was given, there is no need to take action
         }
         if (mns.isConnected()) {
             lStatus.setText("Status: connected");
             lStatus.setTextFill(Color.GREEN);
-            Logger.getLogger(FXFormController.class.getName()).log(Level.FINE, "Connected to {0} {1}", new Object[]{ip, port});
+            MainLogger.log(Level.FINE, "Connected to {0} {1}", new Object[]{ip, port});
         } else {
             lStatus.setText("Status: disconnected");
             lStatus.setTextFill(Color.RED);
-            Logger.getLogger(FXFormController.class.getName()).log(Level.FINE, "Connection failed");
+            MainLogger.log(Level.FINE, "Connection failed");
         }
 
     }
@@ -187,7 +188,7 @@ public class FXFormController implements Initializable {
             try {
                 medias.addLibrary(path);
             } catch (Exception ex) {
-                Logger.getLogger(FXFormController.class.getName()).log(Level.SEVERE, "Could not load the specified folder", ex);
+                MainLogger.log(Level.SEVERE, "Could not load the specified folder", ex);
             }
         }
         list = FXCollections.observableArrayList(medias.getMedias());
@@ -203,7 +204,7 @@ public class FXFormController implements Initializable {
             try{
                 medias.addMediaFromPath(path);
             }catch (Exception ex) {
-                Logger.getLogger(FXFormController.class.getName()).log(Level.SEVERE, "Could not load the specified folder", ex);
+                MainLogger.log(Level.SEVERE, "Could not load the specified folder", ex);
             }
         }
         list = FXCollections.observableArrayList(medias.getMedias());
