@@ -12,7 +12,11 @@ public enum CommunicationProtocol {
     STOP_COMMAND_HEADER("ST"),
     VOLUME_SET_HEADER("VL"),
     INCOMING_DATA("ID"),
+    
+    START_OF_FILE("SOF"),
+    END_OF_FILE("EOF"),
     //Reserved for player-to-client communication
+    PLAYING_NEXT("PN"),
     SHUTDOWN_CODE("SC"),
     STOP_STREAM_CODE("SSC");
 

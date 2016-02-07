@@ -2,9 +2,10 @@ package soundclient.media;
 
 /**
  * A Media is a representation of a media file present in the user's system.
+ *
  * @author lsdpirate
  */
-public class Media implements Comparable{
+public class Media implements Comparable, Cloneable {
 
     private String pathToMedia;
     private String name;
@@ -14,6 +15,7 @@ public class Media implements Comparable{
 
     /**
      * Creates a media with a set path.
+     *
      * @param path The path to set.
      */
     public Media(String path) {
@@ -22,6 +24,7 @@ public class Media implements Comparable{
 
     /**
      * Creates a media with a path and a name.
+     *
      * @param path The path of the media.
      * @param name The name of the media.
      */
@@ -32,6 +35,7 @@ public class Media implements Comparable{
 
     /**
      * Returns the path of the media.
+     *
      * @return Media's path.
      */
     public String getPath() {
@@ -40,6 +44,7 @@ public class Media implements Comparable{
 
     /**
      * Set the name for the media.
+     *
      * @param newName The new name of the media.
      */
     public void setName(String newName) {
@@ -48,6 +53,7 @@ public class Media implements Comparable{
 
     /**
      * Returns the media's name.
+     *
      * @return The media's name.
      */
     public String getName() {
@@ -57,14 +63,23 @@ public class Media implements Comparable{
     @Override
     public int compareTo(Object o) {
         int result = 0;
-        if(o instanceof Media){
-            result = ((Media)o).getPath().compareTo(pathToMedia);
+        if (o instanceof Media) {
+            result = ((Media) o).getPath().compareTo(pathToMedia);
         }
         return result;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return getName();
     }
+
+    @Override
+    protected Media clone() throws CloneNotSupportedException {
+        Media m = new Media(this.pathToMedia);
+        m.setName(this.name);
+        return m;
+    }
+    
+
 }

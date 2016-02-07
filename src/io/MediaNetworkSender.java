@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import soundclient.media.Media;
+import soundclient.media.PlaylistTracker;
 import util.MainLogger;
 
 /**
@@ -17,24 +19,28 @@ import util.MainLogger;
 public class MediaNetworkSender {
 
     /*
-        Will own 2 instances of ClientSocket, one instance will be used for
-        data sending while the other will be reserved for player/client dialog.
+     Will own 2 instances of ClientSocket, one instance will be used for
+     data sending while the other will be reserved for player/client dialog.
      */
     private final ClientSocket dataSocket;
     private boolean connected;
     private final ClientSocket commandSocket;
     private boolean peerListening;
-    
-    
+    private PlaylistTracker playlistTracker;
 
     /**
-     * Default constructor for MediaNetworkSender.
-     * This does not do anything relevant.
+     * Default constructor for MediaNetworkSender. This does not do anything
+     * relevant.
      */
     public MediaNetworkSender() {
         dataSocket = new ClientSocket();
         commandSocket = new ClientSocket();
 
+    }
+
+    public MediaNetworkSender(PlaylistTracker playlistTracker) {
+        this();
+        this.playlistTracker = playlistTracker;
     }
 
     /**
@@ -73,7 +79,7 @@ public class MediaNetworkSender {
 
         //Anonymous thread that whatches for any messages coming from the 
         //connected player via the commandSocket.
-        new Thread() {
+        new Thread("Command reader thread") {
             @Override
             public void run() {
                 while (connected) {
@@ -89,7 +95,10 @@ public class MediaNetworkSender {
                             break;
                         case "SC": //CommunicationProtocol.SHUTDOWN_CODE
                             peerListening = false;
-
+                        case "PN": //CommunicationProtocol.PLAY_NEXT
+                            if (playlistTracker != null) {
+                                playlistTracker.dequeueMedia();
+                            }
                              {
                                 try {
                                     close();
@@ -119,7 +128,7 @@ public class MediaNetworkSender {
         if (dataSocket.isClosed()) {
             throw new IOException("No connection is present");
         }
-        commandSocket.sendData(CommunicationProtocol.INCOMING_DATA.getValue());
+
         peerListening = true;
 
         File audioFile = new File(m.getPath());
@@ -132,19 +141,32 @@ public class MediaNetworkSender {
         FileInputStream fis = new FileInputStream(audioFile);
         byte[] buffer = new byte[(int) audioFile.length()];
 
-        new Thread() {
+        if (playlistTracker != null) {
+            playlistTracker.addMediaToQueue(m);
+        }
+
+        new Thread("Sender thread for: " + m.getName()) {
             @Override
             public void run() {
                 try {
 
                     fis.read(buffer);
-                    for (byte b : buffer) {
-                        synchronized (dataSocket) {
+                    //commandSocket.sendData(CommunicationProtocol.INCOMING_DATA.getValue());
+
+                    synchronized (dataSocket) {
+                        dataSocket.sendData(CommunicationProtocol.START_OF_FILE.getValue());
+                        dataSocket.flush();
+                        Thread.sleep(100);
+                        for (byte b : buffer) {
+
                             if (!peerListening) {
                                 break;
                             }
                             dataSocket.write(b);
                         }
+                        dataSocket.flush();
+                        Thread.sleep(1000);
+                        dataSocket.sendData(CommunicationProtocol.END_OF_FILE.getValue());
                     }
 
                     //Transfer transfer = new Transfer("TRS " + m.getName());
@@ -159,6 +181,8 @@ public class MediaNetworkSender {
                     // OutBufferTracker.removeTransfer(transfer);
                 } catch (IOException ex) {
                     MainLogger.log(Level.SEVERE, null, ex);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(MediaNetworkSender.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
             }
@@ -241,5 +265,9 @@ public class MediaNetworkSender {
         commandSocket.close();
         MainLogger.log(Level.INFO, "Sockets have been closed");
 
+    }
+
+    public PlaylistTracker getPlaylistTracker() {
+        return this.playlistTracker;
     }
 }

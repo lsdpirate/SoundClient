@@ -8,9 +8,10 @@ package user_interface;
 import io.MediaNetworkSender;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,9 +32,10 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import soundclient.media.Media;
 import soundclient.media.MediaLibrary;
+import soundclient.media.PlaylistTracker;
 import util.MainLogger;
 
-public class FXFormController implements Initializable {
+public class FXFormController implements Initializable, Observer {
 
     @FXML
     private ListView<Media> lbMedias;
@@ -82,6 +84,9 @@ public class FXFormController implements Initializable {
 
     @FXML
     private Button btEnq;
+    
+    @FXML
+    private Label lbPlayingStatus;
 
     MediaNetworkSender mns;
     MediaLibrary medias;
@@ -217,7 +222,13 @@ public class FXFormController implements Initializable {
         list = FXCollections.observableArrayList(medias.getMedias());
         lbMedias.setItems(list);
         
+        PlaylistTracker pt = mns.getPlaylistTracker();
+        if(pt != null){
+            pt.addObserver(this);
+        }
+        
     }
+    
 
     /**
      * Initializes the controller class.
@@ -229,6 +240,14 @@ public class FXFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
 
 
+    }
+
+    @Override
+    public void update(Observable o, Object o1) {
+        if(o instanceof PlaylistTracker){
+            String mediaName = ((PlaylistTracker)o).getCurrentlyPlaying().getName();
+            lbPlayingStatus.setText("Now playing: " + mediaName);
+        }
     }
 
 }
