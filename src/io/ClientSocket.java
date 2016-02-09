@@ -106,6 +106,12 @@ public class ClientSocket {
         localSocket.getOutputStream().flush();
     }
 
+    public void sendData(char c) {
+        printWriter.print(c);
+    }
+    
+    
+
     /**
      * Sends the data to the connected socket. If there isn't any socket
      * connected an exception will be thrown.

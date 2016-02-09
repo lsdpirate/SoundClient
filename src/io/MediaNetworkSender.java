@@ -150,7 +150,7 @@ public class MediaNetworkSender {
             public void run() {
                 try {
 
-                    fis.read(buffer);
+                    //fis.read(buffer);
                     //commandSocket.sendData(CommunicationProtocol.INCOMING_DATA.getValue());
 
                     synchronized (dataSocket) {
@@ -159,13 +159,15 @@ public class MediaNetworkSender {
                         Thread.sleep(100);
                         for (byte b : buffer) {
 
-                            if (!peerListening) {
+                            if (peerListening) {
+                                dataSocket.write(b);
+                                dataSocket.flush();
+                            } else {
                                 break;
                             }
-                            dataSocket.write(b);
                         }
-                        dataSocket.flush();
                         Thread.sleep(1000);
+                        dataSocket.flush();
                         dataSocket.sendData(CommunicationProtocol.END_OF_FILE.getValue());
                     }
 
